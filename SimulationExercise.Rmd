@@ -1,0 +1,136 @@
+---
+title: "Simulation Exercise"
+author: "Jacob Schwartz"
+date: "September 9, 2017"
+output:
+  html_document:
+    keep_md: yes
+---
+
+#Overview
+
+In this project we investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. In our analysis we can treat this as our null hypothesis. We'll set lambda = 0.2 for all of the simulations. We will also investigate the distribution of averages of 40 exponential samples. We will initially do a thousand simulations.
+
+
+#Simulations
+
+###Setup
+
+Before we begin, we need to set up our libraries for our analysis. In this case, the only libraries we'll need are related to data sorting, particularly the dplyr package.
+
+```{r setup, results="hide", message=FALSE, warning=FALSE}
+library(plyr) #load libraries
+library(dplyr)
+```
+
+Then we need to initialize our universal variables, mentioned in our synopsis. Specifically, lambda will be 0.2, our sample size (n) will be 40, and, at least initially, we'll be doin 1000 simulations of the exponential function.
+
+```{r variables, cache=TRUE}
+lambda<-0.2 #assign default lambda
+n<-40 #assign default number of samples
+nsim1<-1000 #assign default number of simulations
+```
+
+###Initial Simulation
+
+Now that our baseline is set, we can run our initial simulation. First we need to set the seed, for reproducibility (both later on in this exercise, and generally). Then we can run our simulation of the exponential distribution, `rexp(n, lambda)`. We'll run the simulation `r nsim1` times, and store the results in a matrix. Then we can take the mean of each simulation across the samples, and store them in a table of sample means. This will be our sample distribution for testing.
+
+```{r simulation1, comment="", cache=TRUE}
+set.seed(1987) #set seed for reproducibility
+
+sim1<-matrix(data=rexp(n*nsim1,rate=lambda),nrow=nsim1,ncol=n) #create raw simulation matrix for rexp()
+sim1_mean<-data.frame(Mean=rowMeans(sim1)) #take mean of each simulation, and store in data frame
+sim1_mean<-mutate(sim1_mean,Index=row.names(sim1_mean))%>%select(Index,Mean) #tidy data frame
+head(sim1_mean)
+```
+
+We can see the sampled means above, but that doesn't give us a very good idea of the overall distribution. For that we need more information, and graphical representation.
+
+###Sample Mean vs. Theoretical Mean
+
+So let's do a comparison of the sample and theoretical population means.
+
+```{r means, comment="", cache=TRUE}
+mean_sample1<-mean(sim1_mean$Mean) #find sample mean
+mean_theory1<-1/lambda #find population/theoretical mean
+
+print(mean_sample1)
+print(mean_theory1)
+```
+
+We can see above that the sample mean of `r mean_sample1` is extremely close to the theoretical mean of `r mean_theory1`. This is a strong indication that we cannot reject the null hypothesis of the population mean being `1/lambda`.
+
+
+###Sample Variance vs. Theoretical Variance
+
+Now let's do a comparison of the sample and theoretical population variances.
+
+```{r variances, comment="", cache=TRUE}
+var_sample1<-var(sim1_mean$Mean) #find sample variance
+var_theory1<-(1/lambda)^2/n #find population/theoretical variance
+
+print(var_sample1)
+print(var_theory1)
+```
+
+Again, we can see above that the sample variance of `r var_sample1` is extremely close to the theoretical variance of `r var_theory1`. This is a strong indication that we cannot reject the null hypothesis of the population standard deviation being `1/lambda` either.
+
+We can also use this information, and the means we calculated earlier, to plot a graph of the theoretical and sample density curves (in orange and green respectively.
+
+```{r graph3, fig.width=12, fig.height=6, cache=TRUE}
+x1<-seq(min(sim1_mean$Mean),max(sim1_mean$Mean),length=100) #create x spread for population density curve
+y1<-dnorm(x1,mean=mean_theory1,sd=sqrt(var_theory1)) #create y distribution for population density
+
+#graph simulation with density curves
+hist(sim1_mean$Mean,breaks=100,freq=FALSE,col="lightblue",main="Simulation of rexp()",xlab="Sample Means")
+abline(v=mean_sample1,col="orange",lwd=2)
+abline(v=mean_theory1,col="green",lwd=2)
+lines(density(sim1_mean$Mean),col="orange",lwd=3) #create sample density curve
+lines(x1,y1,col="green",lwd=3)
+```
+
+As we can see, the curves follow one another quite closely, further exemplifying the variance similarity. We can also see the close association between means, since both means are drawn in as vertical lines, the sample one in orange and the theoretical one in green.
+
+
+###Additional Normality Testing
+
+The density curves in the graph from our variance comparison do a decent job of showing that our simulation of the exponential distribution in R tends toward normality.  However, we can do a few more tests to further confirm this conclusion.
+
+One test we can perform is to calculate the 95% confidence intervals of both the sample and theoretical distributions, and see if they line up (we could also calculate the 68% or 99% confidence intervals, but 95% should suffice for the time being).
+
+```{r intervals, comment="", cache=TRUE}
+conf95_sample1<-mean_sample1+c(-1,1)*qnorm(.975)*sqrt(var_sample1)/sqrt(n) #find 95% confidence intervals
+conf95_theory1<-mean_theory1+c(-1,1)*qnorm(.975)*sqrt(var_theory1)/sqrt(n)
+
+print(conf95_sample1)
+print(conf95_theory1)
+```
+
+We see again that the sample confidence interval of `r conf95_sample1[1]` to `r conf95_sample1[2]` is extremely close to the theoretical confidene interval of `r conf95_theory1[1]` to `r conf95_theory1[2]`.
+
+Finally, we can increase our number of simulations to see if we can push our sample mean distribution even further toward normality. To do this we simply need to increase our `nsim` variable, and reset our seed. Then we can essentially run all of the same simulation and distribution calculations we ran earlier, and graph the result.
+
+```{r simulation2, fig.width=12, fig.height=6, cache=TRUE}
+nsim2<-100000 #increase number of simulations to demonstrate convergence toward normality
+set.seed(1987) #reset seed for reproducibility
+
+sim2<-matrix(data=rexp(n*nsim2,rate=lambda),nrow=nsim2,ncol=n) #recalculate simulation matrix
+sim2_mean<-data.frame(Mean=rowMeans(sim2)) #recalculate mean of each simulation
+sim2_mean<-mutate(sim2_mean,Index=row.names(sim2_mean))%>%select(Index,Mean)
+
+x2<-seq(min(sim2_mean$Mean),max(sim2_mean$Mean),length=100) #recalculate population density curve
+y2<-dnorm(x2,mean=mean_theory1,sd=sqrt(var_theory1))
+
+#graph new simulation with density curves
+hist(sim2_mean$Mean,breaks=100,freq=FALSE,col="lightblue",main="Simulation of rexp()",xlab="Sample Means")
+lines(density(sim2_mean$Mean),col="orange",lwd=3) #create sample density curve
+lines(x2,y2,col="green",lwd=3)
+```
+
+As we can clearly see above, though our simulation does slightly lag the theoretical distribution for the exponential function, it appears to be an excellent approximation overall. And the shape of our sample mean distribution is now an almost perfect bell curve.
+
+
+#Appendix
+```{r appendix, comment="", cache=TRUE}
+sessionInfo()
+```
