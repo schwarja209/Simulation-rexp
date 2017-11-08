@@ -2,14 +2,14 @@
 Jacob Schwartz  
 September 9, 2017  
 
-#Overview
+# Overview
 
 In this project we investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. In our analysis we can treat this as our null hypothesis. We'll set lambda = 0.2 for all of the simulations. We will also investigate the distribution of averages of 40 exponential samples. We will initially do a thousand simulations.
 
 
-#Simulations
+# Simulations
 
-###Setup
+### Setup
 
 Before we begin, we need to set up our libraries for our analysis. In this case, the only libraries we'll need are related to data sorting, particularly the dplyr package.
 
@@ -28,7 +28,7 @@ n<-40 #assign default number of samples
 nsim1<-1000 #assign default number of simulations
 ```
 
-###Initial Simulation
+### Initial Simulation
 
 Now that our baseline is set, we can run our initial simulation. First we need to set the seed, for reproducibility (both later on in this exercise, and generally). Then we can run our simulation of the exponential distribution, `rexp(n, lambda)`. We'll run the simulation 1000 times, and store the results in a matrix. Then we can take the mean of each simulation across the samples, and store them in a table of sample means. This will be our sample distribution for testing.
 
@@ -54,7 +54,7 @@ head(sim1_mean)
 
 We can see the sampled means above, but that doesn't give us a very good idea of the overall distribution. For that we need more information, and graphical representation.
 
-###Sample Mean vs. Theoretical Mean
+### Sample Mean vs. Theoretical Mean
 
 So let's do a comparison of the sample and theoretical population means.
 
@@ -81,7 +81,7 @@ print(mean_theory1)
 We can see above that the sample mean of 4.9873292 is extremely close to the theoretical mean of 5. This is a strong indication that we cannot reject the null hypothesis of the population mean being `1/lambda`.
 
 
-###Sample Variance vs. Theoretical Variance
+### Sample Variance vs. Theoretical Variance
 
 Now let's do a comparison of the sample and theoretical population variances.
 
@@ -127,7 +127,7 @@ lines(x1,y1,col="green",lwd=3)
 As we can see, the curves follow one another quite closely, further exemplifying the variance similarity. We can also see the close association between means, since both means are drawn in as vertical lines, the sample one in orange and the theoretical one in green.
 
 
-###Additional Normality Testing
+### Additional Normality Testing
 
 The density curves in the graph from our variance comparison do a decent job of showing that our simulation of the exponential distribution in R tends toward normality.  However, we can do a few more tests to further confirm this conclusion.
 
@@ -180,7 +180,7 @@ lines(x2,y2,col="green",lwd=3)
 As we can clearly see above, though our simulation does slightly lag the theoretical distribution for the exponential function, it appears to be an excellent approximation overall. And the shape of our sample mean distribution is now an almost perfect bell curve.
 
 
-#Appendix
+# Appendix
 
 ```r
 sessionInfo()
